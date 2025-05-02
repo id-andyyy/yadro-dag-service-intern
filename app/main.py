@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.db.base import Base
 from app.db.session import engine
 from app.models.graph import Graph
+from app.models.node import Node
+from app.models.edge import Edge
 
 app = FastAPI()
 
