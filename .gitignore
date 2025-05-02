@@ -1,0 +1,49 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# IDE/editor settings
+.idea/
+*.iml
+.vscode/
+
+# pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Environment variables
+.env
+.env.*.local
+
+# Docker artifacts
+docker-compose.override.yml
+*.log
+
+# Alembic
+alembic/versions/*.pyc
+
+# MyPy
+.mypy_cache/
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.db
