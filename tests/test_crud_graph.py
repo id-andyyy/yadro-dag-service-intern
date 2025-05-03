@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy.orm import Session
 
 from app.models.graph import Graph
@@ -24,6 +25,7 @@ def test_crud_create_and_get_graph(db_session: Session):
     assert fetched_edges == set(edges)
 
 
+@pytest.mark.load
 def test_bulk_create_graph(db_session: Session):
     for _ in range(1000):
         names = ["".join(letters) for letters in product(ascii_lowercase[:10], repeat=2)]
