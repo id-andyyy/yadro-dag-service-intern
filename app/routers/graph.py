@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, status
 
-from app.models.graph import Graph
 from app.schemas.graph import GraphCreate, GraphCreateResponse, GraphReadResponse
 from app.schemas.common import ErrorResponse
 from app.db.deps import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from app.utils.graph import detect_cycles
-from app.crud.graph import crud_create_graph, get_graph_by_id
+from app.crud.graph import db_create_graph, db_get_graph_by_id, NotFoundError
 import re
 
 router = APIRouter()
@@ -80,7 +79,7 @@ def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
             content={"message": "Graph must not contain cycles"},
         )
 
-    new_graph = crud_create_graph(db, node_names, edges)
+    new_graph = db_create_graph(db, node_names, edges)
     return GraphCreateResponse(id=new_graph.id)
 
 
@@ -94,10 +93,11 @@ def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
     }
 )
 def read_graph(graph_id: int, db: Session = Depends(get_db)):
-    graph = get_graph_by_id(db, graph_id)
-    if graph is None:
+    try:
+        graph = db_get_graph_by_id(db, graph_id)
+    except NotFoundError as e:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content={"message": "Graph not found"},
+            content={"message": str(e)},
         )
     return GraphReadResponse.model_validate(graph, from_attributes=True)

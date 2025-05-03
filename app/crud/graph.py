@@ -2,30 +2,44 @@ from app.models.graph import Graph, Node, Edge
 from sqlalchemy.orm import Session
 
 
-def crud_create_graph(db: Session, names: list[str], edges: list[tuple[str, str]]) -> Graph:
+class NotFoundError(Exception):
+    pass
+
+
+def db_create_graph(db: Session, names: list[str], edges: list[tuple[str, str]]) -> Graph:
     graph = Graph()
     db.add(graph)
     db.flush()
+    graph_id = graph.id
 
-    nodes = [Node(name=name, graph_id=graph.id) for name in names]
-    db.add_all(nodes)
+    nodes = [Node(name=name, graph_id=graph_id) for name in names]
+    db.bulk_save_objects(nodes)
     db.flush()
 
-    edges_objs = [
+    rows = (
+        db.query(Node.id, Node.name)
+          .filter(Node.graph_id == graph_id)
+          .all()
+    )
+    name_to_id = {name: _id for _id, name in rows}
+
+    edge_objs = [
         Edge(
-            graph_id=graph.id,
-            source_id=next(n.id for n in nodes if n.name == source),
-            target_id=next(n.id for n in nodes if n.name == target),
+            graph_id=graph_id,
+            source_id=name_to_id[source],
+            target_id=name_to_id[target],
         )
         for source, target in edges
     ]
-    db.add_all(edges_objs)
+    db.bulk_save_objects(edge_objs)
 
     db.commit()
-    db.refresh(graph)
+
     return graph
 
 
-def get_graph_by_id(db: Session, graph_id: int):
+def db_get_graph_by_id(db: Session, graph_id: int):
     graph = db.query(Graph).filter(Graph.id == graph_id).first()
+    if graph is None:
+        raise NotFoundError("Graph not found")
     return graph

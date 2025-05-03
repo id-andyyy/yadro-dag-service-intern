@@ -11,7 +11,7 @@ class Node(Base):
     __tablename__ = "nodes"
 
     id: Mapped[intpk]
-    name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str]
     graph_id: Mapped[int] = mapped_column(ForeignKey("graphs.id", ondelete="CASCADE"))
 
     edges_from: Mapped[list["Edge"]] = relationship(
