@@ -1,25 +1,29 @@
-def detect_cycles(names: list[str], edges: list[tuple[str, str]]) -> bool:
-    adj = {name: [] for name in names}
-    for s, t in edges:
-        adj[s].append(t)
+def get_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> dict[str, list]:
+    adj: dict[str, list[str]] = {node: [] for node in node_names}
+    for edge in edges:
+        adj[edge[0]].append(edge[1])
+    return adj
 
+
+def detect_cycles(node_names: list[str], edges: list[tuple[str, str]]) -> bool:
     visited = set()
-    on_stack = set()
+    stack = set()
+    adj = get_adjacency_list(node_names, edges)
 
     def dfs(u: str) -> bool:
         visited.add(u)
-        on_stack.add(u)
+        stack.add(u)
         for v in adj.get(u, []):
             if v not in visited:
                 if dfs(v):
                     return True
-            elif v in on_stack:
+            elif v in stack:
                 return True
-        on_stack.remove(u)
+        stack.remove(u)
         return False
 
-    for n in names:
-        if n not in visited:
-            if dfs(n):
+    for node in node_names:
+        if node not in visited:
+            if dfs(node):
                 return True
     return False
