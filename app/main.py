@@ -5,14 +5,7 @@ from app.models.graph import Graph, Node, Edge
 from app.routers import router as graph_router
 from contextlib import asynccontextmanager
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    yield
-
-
-app: FastAPI = FastAPI(lifespan=lifespan)
+app: FastAPI = FastAPI()
 app.include_router(graph_router)
 
 
