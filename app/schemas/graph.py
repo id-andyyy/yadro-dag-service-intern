@@ -23,3 +23,7 @@ class GraphReadResponse(BaseModel):
     id: int
     nodes: list[Node]
     edges: list[Edge]
+
+
+class AdjacencyListResponse(BaseModel):
+    adjacency_list: dict[str, list[str]]
