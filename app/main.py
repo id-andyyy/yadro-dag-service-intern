@@ -9,6 +9,6 @@ app: FastAPI = FastAPI()
 app.include_router(graph_router)
 
 
-@app.get("/healthz")
+@app.get("/health")
 def health_check():
     return {"status": "ok"}
