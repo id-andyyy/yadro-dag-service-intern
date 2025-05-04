@@ -21,8 +21,8 @@ router = APIRouter()
         400: {"model": ErrorResponse, "description": "Failed to add graph"},
     }, )
 def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
-    node_names = [node.name for node in graph_in.nodes]
-    edges = [(edge.source, edge.target) for edge in graph_in.edges]
+    node_names: list[str] = [node.name for node in graph_in.nodes]
+    edges: list[tuple[str, str]] = [(edge.source, edge.target) for edge in graph_in.edges]
 
     if not node_names:
         return JSONResponse(

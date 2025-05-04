@@ -6,9 +6,9 @@ def get_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> d
 
 
 def detect_cycles(node_names: list[str], edges: list[tuple[str, str]]) -> bool:
-    visited = set()
-    stack = set()
-    adj = get_adjacency_list(node_names, edges)
+    visited: set[str] = set()
+    stack: set[str] = set()
+    adj: dict[str, list] = get_adjacency_list(node_names, edges)
 
     def dfs(u: str) -> bool:
         visited.add(u)

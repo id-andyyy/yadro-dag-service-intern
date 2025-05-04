@@ -7,12 +7,12 @@ class NotFoundError(Exception):
 
 
 def db_create_graph(db: Session, names: list[str], edges: list[tuple[str, str]]) -> Graph:
-    graph = Graph()
+    graph: Graph = Graph()
     db.add(graph)
     db.flush()
-    graph_id = graph.id
+    graph_id: int = graph.id
 
-    nodes = [Node(name=name, graph_id=graph_id) for name in names]
+    nodes: list[Node] = [Node(name=name, graph_id=graph_id) for name in names]
     db.bulk_save_objects(nodes)
     db.flush()
 
@@ -21,7 +21,7 @@ def db_create_graph(db: Session, names: list[str], edges: list[tuple[str, str]])
           .filter(Node.graph_id == graph_id)
           .all()
     )
-    name_to_id = {name: _id for _id, name in rows}
+    name_to_id: dict[str, int] = {name: _id for _id, name in rows}
 
     edge_objs = [
         Edge(
