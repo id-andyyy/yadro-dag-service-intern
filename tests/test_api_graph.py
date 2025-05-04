@@ -8,18 +8,10 @@ def get_dict_data(nodes: list[str], edges: list[tuple[str, str]]) -> dict[str, l
             "edges": [{"source": source, "target": target} for (source, target) in edges]}
 
 
-@pytest.mark.parametrize(
-    "path, body",
-    [
-        ("/health", {"status": "ok"}),
-    ], ids=[
-        "health-root"
-    ]
-)
-def test_health_check(client: TestClient, path: str, body: dict[str, dict[str, str]]):
-    response = client.get(path)
+def test_health_check(client: TestClient):
+    response = client.get("/health/")
     assert response.status_code == 200
-    assert response.json() == body
+    assert response.json() == {"status": "ok"}
 
 
 @pytest.mark.parametrize(
@@ -38,11 +30,11 @@ def test_create_and_read_graph(client: TestClient,
                                nodes: list[str],
                                edges: list[tuple[str, str]]):
     payload = get_dict_data(nodes, edges)
-    response = client.post("/api/graph", json=payload)
+    response = client.post("/api/graph/", json=payload)
     assert response.status_code == 201
     graph_id = response.json()["id"]
 
-    response = client.get(f"/api/graph/{graph_id}")
+    response = client.get(f"/api/graph/{graph_id}/")
     assert response.status_code == 200
     data = response.json()
     assert data["nodes"] == payload["nodes"]
@@ -116,7 +108,7 @@ def test_create_graph_invalid(client: TestClient,
                               nodes: list[str],
                               edges: list[tuple[str, str]],
                               expected_status):
-    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
+    response = client.post("/api/graph/", json=get_dict_data(nodes, edges))
     assert response.status_code == expected_status
 
 
@@ -133,7 +125,7 @@ def test_create_graph_invalid(client: TestClient,
     ]
 )
 def test_read_graph_invalid(client: TestClient, graph_id: int | str, expected_status: int):
-    response = client.get(f"/api/graph/{graph_id}")
+    response = client.get(f"/api/graph/{graph_id}/")
     assert response.status_code == expected_status
 
 
@@ -165,11 +157,11 @@ def test_get_adjacency_list(client: TestClient,
                             nodes: list[str],
                             edges: list[tuple[str, str]],
                             expected_adj: dict[str, list[str]]):
-    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
+    response = client.post("/api/graph/", json=get_dict_data(nodes, edges))
     assert response.status_code == 201
     graph_id: int = response.json()["id"]
 
-    response = client.get(f"/api/graph/{graph_id}/adjacency_list")
+    response = client.get(f"/api/graph/{graph_id}/adjacency_list/")
     assert response.status_code == 200
 
     data = response.json()
@@ -190,7 +182,7 @@ def test_get_adjacency_list(client: TestClient,
     ]
 )
 def test_get_adjacency_list_invalid(client: TestClient, graph_id: int | str, expected_status: int):
-    response = client.get(f"/api/graph/{graph_id}/adjacency_list")
+    response = client.get(f"/api/graph/{graph_id}/adjacency_list/")
     assert response.status_code == expected_status
 
 
@@ -222,11 +214,11 @@ def test_get_reverse_adjacency_list(client: TestClient,
                                     nodes: list[str],
                                     edges: list[tuple[str, str]],
                                     expected_adj: dict[str, list[str]]):
-    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
+    response = client.post("/api/graph/", json=get_dict_data(nodes, edges))
     assert response.status_code == 201
     graph_id = response.json()["id"]
 
-    response = client.get(f"/api/graph/{graph_id}/reverse_adjacency_list")
+    response = client.get(f"/api/graph/{graph_id}/reverse_adjacency_list/")
     assert response.status_code == 200
 
     data = response.json()
@@ -247,7 +239,7 @@ def test_get_reverse_adjacency_list(client: TestClient,
     ]
 )
 def test_get_reverse_adjacency_list_invalid(client: TestClient, graph_id: int | str, expected_status: int):
-    response = client.get(f"/api/graph/{graph_id}/reverse_adjacency_list")
+    response = client.get(f"/api/graph/{graph_id}/reverse_adjacency_list/")
     assert response.status_code == expected_status
 
 
@@ -311,14 +303,14 @@ def test_delete_node(client: TestClient,
                      result_nodes: list[str],
                      result_edges: list[tuple[str, str]]):
     payload = get_dict_data(nodes, edges)
-    response = client.post("/api/graph", json=payload)
+    response = client.post("/api/graph/", json=payload)
     assert response.status_code == 201
     graph_id = response.json()["id"]
 
-    response = client.delete(f"/api/graph/{graph_id}/node/{node_name}")
+    response = client.delete(f"/api/graph/{graph_id}/node/{node_name}/")
     assert response.status_code == 204
 
-    response = client.get(f"/api/graph/{graph_id}")
+    response = client.get(f"/api/graph/{graph_id}/")
     assert response.status_code == 200
     data = response.json()
 
@@ -349,10 +341,9 @@ def test_delete_node_invalid(client: TestClient,
                              graph_id: int | str,
                              node_name: str,
                              expected_status: int):
-    payload = {"nodes": [{"name": node} for node in nodes],
-               "edges": [{"source": source[0], "target": target} for (source, target) in edges]}
+    payload = get_dict_data(nodes, edges)
     response = client.post(f"/api/graph", json=payload)
     assert response.status_code == 201
 
-    response = client.delete(f"/api/graph/{graph_id}/node/{node_name}")
+    response = client.delete(f"/api/graph/{graph_id}/node/{node_name}/")
     assert response.status_code == expected_status
