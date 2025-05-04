@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.graph import detect_cycles, get_adjacency_list
+from app.utils.graph import detect_cycles, get_adjacency_list, get_reversed_adjacency_list
 
 
 @pytest.mark.parametrize(
@@ -22,12 +22,12 @@ from app.utils.graph import detect_cycles, get_adjacency_list
         "multiple-no-edges",
     ],
 )
-def test_detect_cycles(names, edges, expected):
+def test_detect_cycles(names: list[str], edges: list[tuple[str, str]], expected: bool):
     assert detect_cycles(names, edges) is expected
 
 
 @pytest.mark.parametrize(
-    "names, edges, expected_adj",
+    "names, edges, expected",
     [
         (["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")],
          {"a": ["c"], "b": ["c"], "c": ["d"], "d": []}),
@@ -43,5 +43,20 @@ def test_detect_cycles(names, edges, expected):
         "singleton",
     ],
 )
-def test_get_adjacency_list(names, edges, expected_adj):
-    assert get_adjacency_list(names, edges) == expected_adj
+def test_get_adjacency_list(names: list[str], edges: list[tuple[str, str]], expected: dict[str, list[str]]):
+    assert get_adjacency_list(names, edges) == expected
+
+
+@pytest.mark.parametrize(
+    "names, edges, expected",
+    [
+        (["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")],
+         {"a": [], "b": [], "c": ["a", "b"], "d": ["c"]}),
+        (["a", "b", "c"], [], {"a": [], "b": [], "c": []}),
+        (["a", "b", "c", "d"], [("b", "a"), ("c", "a"), ("d", "a")],
+         {"a": ["b", "c", "d"], "b": [], "c": [], "d": []}),
+        (["a"], [], {"a": []}),
+    ]
+)
+def test_get_reversed_adjacency_list(names: list[str], edges: list[tuple[str, str]], expected: dict[str, list[str]]):
+    assert get_reversed_adjacency_list(names, edges) == expected

@@ -5,6 +5,13 @@ def get_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> d
     return adj
 
 
+def get_reversed_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> dict[str, list[str]]:
+    adj: dict[str, list[str]] = {node: [] for node in node_names}
+    for edge in edges:
+        adj[edge[1]].append(edge[0])
+    return adj
+
+
 def detect_cycles(node_names: list[str], edges: list[tuple[str, str]]) -> bool:
     visited: set[str] = set()
     stack: set[str] = set()
