@@ -57,6 +57,8 @@ def test_create_and_read_graph(client: TestClient,
         ([{"name": "a"}, {"name": "b"}], [{"source": "a", "target": "b"}, {"source": "a", "target": "b"}], 400),
         ([{"name": ""}, {"name": "b"}], [{"source": "", "target": "b"}], 400),
         ([{"name": "a" * 256}, {"name": "b"}], [{"source": "a" * 256, "target": "b"}], 400),
+        ([{"name": "a"}, {"name": "b"}, {"name": "c"}],
+         [{"source": "a", "target": "b"}, {"source": "b", "target": "c"}, {"source": "c", "target": "a"}], 400),
 
         ([{"name": 1}, {"name": "b"}], [{"source": 1, "target": "b"}], 422),
         ([{"title": 1}, {"title": "b"}], [{"source": 1, "target": "b"}], 422),
@@ -72,6 +74,7 @@ def test_create_and_read_graph(client: TestClient,
         "duplicate-edges",
         "empty-name",
         "name-too-long",
+        "three-node-cycle",
 
         "wrong-type-in-node-and-edges",
         "wrong-node-title",
@@ -164,6 +167,7 @@ def test_read_invalid_graph_adjacency_list(client: TestClient, path: str, expect
     response = client.get(path)
     assert response.status_code == expected_status
 
+
 @pytest.mark.parametrize(
     "nodes, edges, status, expected_adj",
     [
@@ -185,13 +189,17 @@ def test_read_invalid_graph_adjacency_list(client: TestClient, path: str, expect
                 200,
                 {"a": [], "b": []}
         ),
+    ], ids=[
+        "chain",
+        "star",
+        "no-edges"
     ]
 )
 def test_read_graph_reverse_adjacency_list(client: TestClient,
-                                            nodes: list[dict[str, str]],
-                                            edges: list[dict[str, str]],
-                                            status: int,
-                                            expected_adj: dict[str, list[str]]):
+                                           nodes: list[dict[str, str]],
+                                           edges: list[dict[str, str]],
+                                           status: int,
+                                           expected_adj: dict[str, list[str]]):
     payload = {"nodes": nodes, "edges": edges}
     response = client.post("/api/graph/", json=payload)
     assert response.status_code == 201
@@ -203,3 +211,20 @@ def test_read_graph_reverse_adjacency_list(client: TestClient,
     data = response.json()
     assert "adjacency_list" in data
     assert data["adjacency_list"] == expected_adj
+
+
+@pytest.mark.parametrize(
+    "path, expected_status",
+    [
+        ("/api/graph/100/reverse_adjacency_list", 404),
+        ("/api/graph/0/reverse_adjacency_list", 404),
+        ("/api/graph/invalid/reverse_adjacency_list", 422),
+    ], ids=[
+        "not-found-id",
+        "zero-id",
+        "invalid-id-format",
+    ]
+)
+def test_read_invalid_graph_reverse_adjacency_list(client: TestClient, path: str, expected_status: int):
+    response = client.get(path)
+    assert response.status_code == expected_status
