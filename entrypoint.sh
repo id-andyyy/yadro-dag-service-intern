@@ -5,4 +5,4 @@ alembic upgrade head
 
 ls -l /app
 
-exec uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload --reload-dir /app/app
+exec uvicorn app.main:app --host 0.0.0.0 --port 8080

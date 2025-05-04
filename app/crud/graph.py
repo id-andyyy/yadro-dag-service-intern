@@ -18,8 +18,8 @@ def db_create_graph(db: Session, names: list[str], edges: list[tuple[str, str]])
 
     rows = (
         db.query(Node.id, Node.name)
-          .filter(Node.graph_id == graph_id)
-          .all()
+        .filter(Node.graph_id == graph_id)
+        .all()
     )
     name_to_id: dict[str, int] = {name: _id for _id, name in rows}
 
@@ -43,3 +43,18 @@ def db_get_graph_by_id(db: Session, graph_id: int):
     if graph is None:
         raise NotFoundError("Graph not found")
     return graph
+
+
+def db_delete_node(db: Session, graph_id: int, node_name: str) -> bool:
+    graph = db_get_graph_by_id(db, graph_id)
+
+    node = db.query(Node).filter(
+        Node.id == graph_id,
+        Node.name == node_name
+    ).first()
+    if node is None:
+        raise NotFoundError("Node not found")
+
+    db.delete(node)
+    db.commit()
+    return True
