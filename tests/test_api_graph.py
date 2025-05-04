@@ -1,8 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 
 
-def get_dict_type(nodes: list[str], edges: list[tuple[str, str]]) -> dict[str, list[dict[str, str]]]:
+def get_dict_data(nodes: list[str], edges: list[tuple[str, str]]) -> dict[str, list[dict[str, str]]]:
     return {"nodes": [{"name": node} for node in nodes],
             "edges": [{"source": source, "target": target} for (source, target) in edges]}
 
@@ -36,7 +37,7 @@ def test_health_check(client: TestClient, path: str, body: dict[str, dict[str, s
 def test_create_and_read_graph(client: TestClient,
                                nodes: list[str],
                                edges: list[tuple[str, str]]):
-    payload = get_dict_type(nodes, edges)
+    payload = get_dict_data(nodes, edges)
     response = client.post("/api/graph", json=payload)
     assert response.status_code == 201
     graph_id = response.json()["id"]
@@ -46,6 +47,33 @@ def test_create_and_read_graph(client: TestClient,
     data = response.json()
     assert data["nodes"] == payload["nodes"]
     assert data["edges"] == payload["edges"]
+
+
+@pytest.mark.parametrize(
+    "nodes, edges",
+    [
+        (["a", "b"], [("a", "b")]),
+    ], ids=[
+        "simple-graph",
+    ]
+)
+def test_db_integrity_error_returns_400(client: TestClient,
+                                        monkeypatch: pytest.MonkeyPatch,
+                                        nodes: list[str],
+                                        edges: list[tuple[str, str]]):
+    payload = get_dict_data(nodes, edges)
+
+    def fake_db_create_graph(db, names, edges):
+        raise IntegrityError("orig statement", params=None, orig=None)
+
+    monkeypatch.setattr("app.routers.graph.db_create_graph", fake_db_create_graph)
+
+    response = client.post("/api/graph/", json=payload)
+
+    assert response.status_code == 400
+    body = response.json()
+    assert "message" in body
+    assert "Database integrity error" in body["message"]
 
 
 @pytest.mark.parametrize(
@@ -88,7 +116,7 @@ def test_create_graph_invalid(client: TestClient,
                               nodes: list[str],
                               edges: list[tuple[str, str]],
                               expected_status):
-    response = client.post("/api/graph", json=get_dict_type(nodes, edges))
+    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
     assert response.status_code == expected_status
 
 
@@ -137,7 +165,7 @@ def test_get_adjacency_list(client: TestClient,
                             nodes: list[str],
                             edges: list[tuple[str, str]],
                             expected_adj: dict[str, list[str]]):
-    response = client.post("/api/graph", json=get_dict_type(nodes, edges))
+    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
     assert response.status_code == 201
     graph_id: int = response.json()["id"]
 
@@ -194,7 +222,7 @@ def test_get_reverse_adjacency_list(client: TestClient,
                                     nodes: list[str],
                                     edges: list[tuple[str, str]],
                                     expected_adj: dict[str, list[str]]):
-    response = client.post("/api/graph", json=get_dict_type(nodes, edges))
+    response = client.post("/api/graph", json=get_dict_data(nodes, edges))
     assert response.status_code == 201
     graph_id = response.json()["id"]
 
@@ -282,7 +310,7 @@ def test_delete_node(client: TestClient,
                      node_name: str,
                      result_nodes: list[str],
                      result_edges: list[tuple[str, str]]):
-    payload = get_dict_type(nodes, edges)
+    payload = get_dict_data(nodes, edges)
     response = client.post("/api/graph", json=payload)
     assert response.status_code == 201
     graph_id = response.json()["id"]
@@ -294,7 +322,7 @@ def test_delete_node(client: TestClient,
     assert response.status_code == 200
     data = response.json()
 
-    result = get_dict_type(result_nodes, result_edges)
+    result = get_dict_data(result_nodes, result_edges)
     assert data["nodes"] == result["nodes"]
     assert data["edges"] == result["edges"]
 
