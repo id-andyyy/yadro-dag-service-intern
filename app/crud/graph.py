@@ -49,7 +49,7 @@ def db_delete_node(db: Session, graph_id: int, node_name: str) -> bool:
     graph = db_get_graph_by_id(db, graph_id)
 
     node = db.query(Node).filter(
-        Node.id == graph_id,
+        Node.graph_id == graph_id,
         Node.name == node_name
     ).first()
     if node is None:
