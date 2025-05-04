@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, status
-
+from fastapi import APIRouter, Depends, status, HTTPException
 from app.schemas.graph import GraphCreate, GraphCreateResponse, GraphReadResponse, AdjacencyListResponse
 from app.schemas.common import ErrorResponse
 from app.db.deps import get_db
@@ -15,8 +14,9 @@ router = APIRouter()
 @router.post(
     "/api/graph/",
     response_model=GraphCreateResponse,
+    response_description="Successful response",
     status_code=status.HTTP_201_CREATED,
-    description="Ручка для создания графа, принимает граф в виде списка вершин и списка ребер",
+    description="Ручка для создания графа, принимает граф в виде списка вершин и списка ребер.",
     responses={
         400: {"model": ErrorResponse, "description": "Failed to add graph"},
     }, )
@@ -87,9 +87,9 @@ def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
     "/api/graph/{graph_id}/",
     response_model=GraphReadResponse,
     status_code=status.HTTP_200_OK,
-    description="Ручка для чтения графа в виде списка вершин и списка ребер",
+    description="Ручка для чтения графа в виде списка вершин и списка ребер.",
     responses={
-        400: {"model": ErrorResponse, "description": "Graph entity not found"},
+        404: {"model": ErrorResponse, "description": "Graph entity not found"},
     }
 )
 def read_graph(graph_id: int, db: Session = Depends(get_db)):
@@ -153,10 +153,9 @@ def get_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
 @router.delete(
     "/api/graph/{graph_id}/node/{node_name}",
     status_code=status.HTTP_204_NO_CONTENT,
-    description="Ручка для удаления вершины из графа по ее имени",
+    description="Ручка для удаления вершины из графа по ее имени.",
     responses={
         404: {"model": ErrorResponse, "description": "Graph entity not found"},
-        422: {"model": ErrorResponse, "description": "Validation Error"},
     }
 )
 def delete_node(graph_id: int, node_name: str, db: Session = Depends(get_db)):
@@ -164,10 +163,8 @@ def delete_node(graph_id: int, node_name: str, db: Session = Depends(get_db)):
         graph = db_get_graph_by_id(db, graph_id)
         nodes_cnt: int = len(graph.nodes)
         if nodes_cnt == 1:
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"message": f"The node '{node_name}' is the only in the graph with id={graph_id}"}
-            )
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail=f"The node '{node_name}' is the only in the graph with id={graph_id}")
     except NotFoundError as e:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
