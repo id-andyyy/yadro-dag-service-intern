@@ -5,7 +5,7 @@ from app.schemas.common import ErrorResponse
 from app.db.deps import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from app.utils.graph import detect_cycles, get_adjacency_list
+from app.utils.graph import detect_cycles, get_adjacency_list, get_reverse_adjacency_list
 from app.crud.graph import db_create_graph, db_get_graph_by_id, NotFoundError
 import re
 
@@ -107,7 +107,7 @@ def read_graph(graph_id: int, db: Session = Depends(get_db)):
     "/api/graph/{graph_id}/adjacency_list",
     response_model=AdjacencyListResponse,
     status_code=status.HTTP_200_OK,
-    description="Ручка для чтения графа в виде списка смежности. Список смежности представлен в виде пар ключ - значение, где ключ - имя вершины графа, значение - список имен всех смежных вершин (всех потомков ключа)",
+    description="Ручка для чтения графа в виде списка смежности.\nСписок смежности представлен в виде пар ключ - значение, где\n- ключ - имя вершины графа,\n- значение - список имен всех смежных вершин (всех потомков ключа).",
     responses={
         404: {"model": ErrorResponse, "description": "Graph entity not found"},
     }
@@ -123,4 +123,28 @@ def read_graph_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
     node_names = [node.name for node in graph.nodes]
     edges = [(edge.source, edge.target) for edge in graph.edges]
     adjacency_list = get_adjacency_list(node_names, edges)
+    return AdjacencyListResponse.model_validate({"adjacency_list": adjacency_list}, from_attributes=True)
+
+
+@router.get(
+    "/api/graph/{graph_id}/reverse_adjacency_list",
+    response_model=AdjacencyListResponse,
+    status_code=status.HTTP_200_OK,
+    description="Ручка для чтения транспонированного графа в виде списка смежности.\nСписок смежности представлен в виде пар ключ - значение, где\n- ключ - имя вершины графа,\n- значение - список имен всех смежных вершин (всех предков ключа в исходном графе).",
+    responses={
+        404: {"model": ErrorResponse, "description": "Graph entity not found"},
+    }
+)
+def read_graph_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
+    try:
+        graph = db_get_graph_by_id(db, graph_id)
+    except NotFoundError as e:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"message": str(e)},
+        )
+
+    node_names = [node.name for node in graph.nodes]
+    edges = [(edge.source, edge.target) for edge in graph.edges]
+    adjacency_list = get_reverse_adjacency_list(node_names, edges)
     return AdjacencyListResponse.model_validate({"adjacency_list": adjacency_list}, from_attributes=True)

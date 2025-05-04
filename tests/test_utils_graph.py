@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils.graph import detect_cycles, get_adjacency_list, get_reversed_adjacency_list
+from app.utils.graph import detect_cycles, get_adjacency_list, get_reverse_adjacency_list
 
 
 @pytest.mark.parametrize(
@@ -58,5 +58,5 @@ def test_get_adjacency_list(names: list[str], edges: list[tuple[str, str]], expe
         (["a"], [], {"a": []}),
     ]
 )
-def test_get_reversed_adjacency_list(names: list[str], edges: list[tuple[str, str]], expected: dict[str, list[str]]):
-    assert get_reversed_adjacency_list(names, edges) == expected
+def test_get_reverse_adjacency_list(names: list[str], edges: list[tuple[str, str]], expected: dict[str, list[str]]):
+    assert get_reverse_adjacency_list(names, edges) == expected

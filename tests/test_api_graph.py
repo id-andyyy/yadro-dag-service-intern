@@ -59,6 +59,8 @@ def test_create_and_read_graph(client: TestClient,
         ([{"name": "a" * 256}, {"name": "b"}], [{"source": "a" * 256, "target": "b"}], 400),
 
         ([{"name": 1}, {"name": "b"}], [{"source": 1, "target": "b"}], 422),
+        ([{"title": 1}, {"title": "b"}], [{"source": 1, "target": "b"}], 422),
+        ([{"name": 1}, {"name": "b"}], [{"from": 1, "to": "b"}], 422),
     ], ids=[
         "edge-nodes-not-existent",
         "edge-target-missing-node",
@@ -70,7 +72,10 @@ def test_create_and_read_graph(client: TestClient,
         "duplicate-edges",
         "empty-name",
         "name-too-long",
-        "wrong-type-in-node",
+
+        "wrong-type-in-node-and-edges",
+        "wrong-node-title",
+        "wrong-edge-title",
     ]
 )
 def test_create_invalid_graph(client: TestClient,
@@ -102,22 +107,22 @@ def test_read_invalid_graph(client: TestClient, path: str, expected_status: int)
     "nodes, edges, status, expected_adj",
     [
         (
-                [{"name": "A"}, {"name": "B"}, {"name": "C"}],
-                [{"source": "A", "target": "B"}, {"source": "B", "target": "C"}],
+                [{"name": "a"}, {"name": "b"}, {"name": "c"}],
+                [{"source": "a", "target": "b"}, {"source": "b", "target": "c"}],
                 200,
-                {"A": ["B"], "B": ["C"], "C": []}
+                {"a": ["b"], "b": ["c"], "c": []}
         ),
         (
-                [{"name": "A"}, {"name": "B"}, {"name": "C"}, {"name": "D"}],
-                [{"source": "A", "target": "B"}, {"source": "A", "target": "C"}, {"source": "A", "target": "D"}],
+                [{"name": "a"}, {"name": "b"}, {"name": "c"}, {"name": "d"}],
+                [{"source": "a", "target": "b"}, {"source": "a", "target": "c"}, {"source": "a", "target": "d"}],
                 200,
-                {"A": ["B", "C", "D"], "B": [], "C": [], "D": []}
+                {"a": ["b", "c", "d"], "b": [], "c": [], "d": []}
         ),
         (
-                [{"name": "X"}, {"name": "Y"}],
+                [{"name": "a"}, {"name": "b"}],
                 [],
                 200,
-                {"X": [], "Y": []}
+                {"a": [], "b": []}
         ),
     ], ids=[
         "chain",
@@ -158,3 +163,43 @@ def test_read_graph_adjacency_list(client: TestClient,
 def test_read_invalid_graph_adjacency_list(client: TestClient, path: str, expected_status: int):
     response = client.get(path)
     assert response.status_code == expected_status
+
+@pytest.mark.parametrize(
+    "nodes, edges, status, expected_adj",
+    [
+        (
+                [{"name": "a"}, {"name": "b"}, {"name": "c"}],
+                [{"source": "a", "target": "b"}, {"source": "b", "target": "c"}],
+                200,
+                {"a": [], "b": ["a"], "c": ["b"]}
+        ),
+        (
+                [{"name": "a"}, {"name": "b"}, {"name": "c"}, {"name": "d"}],
+                [{"source": "a", "target": "b"}, {"source": "a", "target": "c"}, {"source": "a", "target": "d"}],
+                200,
+                {"a": [], "b": ["a"], "c": ["a"], "d": ["a"]}
+        ),
+        (
+                [{"name": "a"}, {"name": "b"}],
+                [],
+                200,
+                {"a": [], "b": []}
+        ),
+    ]
+)
+def test_read_graph_reverse_adjacency_list(client: TestClient,
+                                            nodes: list[dict[str, str]],
+                                            edges: list[dict[str, str]],
+                                            status: int,
+                                            expected_adj: dict[str, list[str]]):
+    payload = {"nodes": nodes, "edges": edges}
+    response = client.post("/api/graph/", json=payload)
+    assert response.status_code == 201
+    graph_id = response.json()["id"]
+
+    response = client.get(f"/api/graph/{graph_id}/reverse_adjacency_list")
+    assert response.status_code == status
+
+    data = response.json()
+    assert "adjacency_list" in data
+    assert data["adjacency_list"] == expected_adj
