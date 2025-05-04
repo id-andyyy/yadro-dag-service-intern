@@ -166,7 +166,7 @@ def delete_node(graph_id: int, node_name: str, db: Session = Depends(get_db)):
         if nodes_cnt == 1:
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"message": "There is only one vertex left in the graph"}
+                content={"message": f"The node '{node_name}' is the only in the graph with id={graph_id}"}
             )
     except NotFoundError as e:
         return JSONResponse(
