@@ -5,8 +5,8 @@ from app.schemas.common import ErrorResponse
 from app.db.deps import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from app.utils.graph import detect_cycles, get_adjacency_list, get_reverse_adjacency_list
-from app.crud.graph import db_create_graph, db_get_graph_by_id, NotFoundError
+from app.utils.graph import detect_cycles, build_adjacency_list, build_reverse_adjacency_list
+from app.crud.graph import db_create_graph, db_get_graph_by_id, NotFoundError, db_delete_node
 import re
 
 router = APIRouter()
@@ -112,7 +112,7 @@ def read_graph(graph_id: int, db: Session = Depends(get_db)):
         404: {"model": ErrorResponse, "description": "Graph entity not found"},
     }
 )
-def read_graph_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
+def get_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
     try:
         graph = db_get_graph_by_id(db, graph_id)
     except NotFoundError as e:
@@ -122,7 +122,7 @@ def read_graph_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
         )
     node_names = [node.name for node in graph.nodes]
     edges = [(edge.source, edge.target) for edge in graph.edges]
-    adjacency_list = get_adjacency_list(node_names, edges)
+    adjacency_list = build_adjacency_list(node_names, edges)
     return AdjacencyListResponse.model_validate({"adjacency_list": adjacency_list}, from_attributes=True)
 
 
@@ -135,7 +135,7 @@ def read_graph_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
         404: {"model": ErrorResponse, "description": "Graph entity not found"},
     }
 )
-def read_graph_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
+def get_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
     try:
         graph = db_get_graph_by_id(db, graph_id)
     except NotFoundError as e:
@@ -146,5 +146,38 @@ def read_graph_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_d
 
     node_names = [node.name for node in graph.nodes]
     edges = [(edge.source, edge.target) for edge in graph.edges]
-    adjacency_list = get_reverse_adjacency_list(node_names, edges)
+    adjacency_list = build_reverse_adjacency_list(node_names, edges)
     return AdjacencyListResponse.model_validate({"adjacency_list": adjacency_list}, from_attributes=True)
+
+
+@router.delete(
+    "/api/graph/{graph_id}/node/{node_name}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description="Ручка для удаления вершины из графа по ее имени",
+    responses={
+        404: {"model": ErrorResponse, "description": "Graph entity not found"},
+        422: {"model": ErrorResponse, "description": "Validation Error"},
+    }
+)
+def delete_node(graph_id: int, node_name: str, db: Session = Depends(get_db)):
+    try:
+        graph = db_get_graph_by_id(db, graph_id)
+        nodes_cnt: int = len(graph.nodes)
+        if nodes_cnt == 1:
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"message": "There is only one vertex left in the graph"}
+            )
+    except NotFoundError as e:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"message": str(e)},
+        )
+
+    try:
+        db_delete_node(db, graph_id, node_name)
+    except NotFoundError as e:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"message": str(e)},
+        )

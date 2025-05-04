@@ -45,7 +45,7 @@ def db_get_graph_by_id(db: Session, graph_id: int):
     return graph
 
 
-def db_delete_node(db: Session, graph_id: int, node_name: str) -> bool:
+def db_delete_node(db: Session, graph_id: int, node_name: str) -> None:
     graph = db_get_graph_by_id(db, graph_id)
 
     node = db.query(Node).filter(
@@ -57,4 +57,3 @@ def db_delete_node(db: Session, graph_id: int, node_name: str) -> bool:
 
     db.delete(node)
     db.commit()
-    return True

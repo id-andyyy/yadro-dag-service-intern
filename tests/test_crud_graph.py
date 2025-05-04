@@ -66,15 +66,50 @@ def test_bulk_create_graph(db_session: Session):
 
 
 @pytest.mark.parametrize(
-    "names, edges, node_name, result_names, result_edges",
+    "nodes, edges, node_name, result_nodes, result_edges",
     [
-        (["a", "b", "c"], [("a", "b"), ("b", "c")], "a", ["b", "c"], [("b", "c")]),
-        (["a", "b", "c", "d"], [("a", "b"), ("a", "c"), ["a", "d"]], "a", ["b", "c", "d"], []),
-        (["a", "b"], [], "a", ["b"], []),
-        (["a", "b", "c", "d", "e"], [("a", "b"), ("b", "c"), ("c", "d"), ("d", "e")], "c", ["a", "b", "d", "e"],
-         [("a", "b"), ("d", "e")]),
-        (["a", "b", "c", "d", "e"], [("d", "c"), ("d", "a"), ("b", "e")], "d", ["a", "b", "c", "e"], [("b", "e")]),
-        (["a", "b", "c"], [("a", "b")], "c", ["a", "b"], [("a", "b")]),
+        (
+                ["a", "b", "c"],
+                [("a", "b"), ("b", "c")],
+                "a",
+                ["b", "c"],
+                [("b", "c")]
+        ),
+        (
+                ["a", "b", "c", "d"],
+                [("a", "b"), ("a", "c"), ["a", "d"]],
+                "a",
+                ["b", "c", "d"],
+                []
+        ),
+        (
+                ["a", "b"],
+                [],
+                "a",
+                ["b"],
+                []
+        ),
+        (
+                ["a", "b", "c", "d", "e"],
+                [("a", "b"), ("b", "c"), ("c", "d"), ("d", "e")],
+                "c",
+                ["a", "b", "d", "e"],
+                [("a", "b"), ("d", "e")]
+        ),
+        (
+                ["a", "b", "c", "d", "e"],
+                [("d", "c"), ("d", "a"), ("b", "e")],
+                "d",
+                ["a", "b", "c", "e"],
+                [("b", "e")]
+        ),
+        (
+                ["a", "b", "c"],
+                [("a", "b")],
+                "c",
+                ["a", "b"],
+                [("a", "b")]
+        ),
     ], ids=[
         "simple-graph",
         "star",
@@ -85,23 +120,23 @@ def test_bulk_create_graph(db_session: Session):
     ]
 )
 def test_crud_delete_node(db_session: Session,
-                          names: list[str],
+                          nodes: list[str],
                           edges: list[tuple[str, str]],
                           node_name: str,
-                          result_names: list[str],
+                          result_nodes: list[str],
                           result_edges: list[tuple[str, str]]):
-    graph: Graph = db_create_graph(db_session, names, edges)
+    graph: Graph = db_create_graph(db_session, nodes, edges)
 
-    assert db_delete_node(db_session, graph.id, node_name) is True
+    db_delete_node(db_session, graph.id, node_name)
 
     result_graph = db_get_graph_by_id(db_session, graph.id)
     assert result_graph is not None
-    assert {node.name for node in result_graph.nodes} == set(result_names)
+    assert {node.name for node in result_graph.nodes} == set(result_nodes)
     assert {(edge.source, edge.target) for edge in result_graph.edges} == set(result_edges)
 
 
 @pytest.mark.parametrize(
-    "names, edges, graph_id, node_name, error, error_message",
+    "nodes, edges, graph_id, node_name, error, error_message",
     [
         (["a", "b", "c"], [("a", "b"), ("b", "c")], 1, "d", NotFoundError, "Node not found"),
         (["a", "b"], [("a", "b")], 100, "a", NotFoundError, "Graph not found"),
@@ -111,13 +146,13 @@ def test_crud_delete_node(db_session: Session,
     ]
 )
 def test_crud_delete_invalid_node(db_session: Session,
-                                  names: list[str],
+                                  nodes: list[str],
                                   edges: list[tuple[str, str]],
                                   graph_id: int,
                                   node_name: str,
                                   error: Exception,
                                   error_message: str):
-    graph: Graph = db_create_graph(db_session, names, edges)
+    graph: Graph = db_create_graph(db_session, nodes, edges)
 
     with pytest.raises(NotFoundError) as exc_info:
         db_delete_node(db_session, graph_id=graph_id, node_name=node_name)
