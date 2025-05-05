@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
+from app.models.graph import Graph
 from app.schemas.graph import GraphCreate, GraphCreateResponse, GraphReadResponse, AdjacencyListResponse
 from app.schemas.common import ErrorResponse
 from app.db.deps import get_db
@@ -63,7 +64,7 @@ def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
                     "message": f"Edge ({source}->{target}) with a non-existent vertex"},
             )
 
-    seen = set()
+    seen: set[tuple[str, str]] = set()
     for source, target in edges:
         if (source, target) in seen:
             return JSONResponse(
@@ -94,7 +95,7 @@ def create_graph(graph_in: GraphCreate, db: Session = Depends(get_db)):
 )
 def read_graph(graph_id: int, db: Session = Depends(get_db)):
     try:
-        graph = db_get_graph_by_id(db, graph_id)
+        graph: Graph = db_get_graph_by_id(db, graph_id)
     except NotFoundError as e:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -114,7 +115,7 @@ def read_graph(graph_id: int, db: Session = Depends(get_db)):
 )
 def get_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
     try:
-        graph = db_get_graph_by_id(db, graph_id)
+        graph: Graph = db_get_graph_by_id(db, graph_id)
     except NotFoundError as e:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -137,7 +138,7 @@ def get_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
 )
 def get_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
     try:
-        graph = db_get_graph_by_id(db, graph_id)
+        graph: Graph = db_get_graph_by_id(db, graph_id)
     except NotFoundError as e:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -160,7 +161,7 @@ def get_reverse_adjacency_list(graph_id: int, db: Session = Depends(get_db)):
 )
 def delete_node(graph_id: int, node_name: str, db: Session = Depends(get_db)):
     try:
-        graph = db_get_graph_by_id(db, graph_id)
+        graph: Graph = db_get_graph_by_id(db, graph_id)
         nodes_cnt: int = len(graph.nodes)
         if nodes_cnt == 1:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

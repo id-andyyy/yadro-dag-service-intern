@@ -1,4 +1,7 @@
-def build_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> dict[str, list]:
+from app.models.graph import Node, Edge
+
+
+def build_adjacency_list(node_names: list[str], edges: list[tuple[str, str]]) -> dict[str, list[str]]:
     adj: dict[str, list[str]] = {node: [] for node in node_names}
     for edge in edges:
         adj[edge[0]].append(edge[1])
