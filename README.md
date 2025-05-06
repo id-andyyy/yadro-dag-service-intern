@@ -1,12 +1,12 @@
 ![Art](https://i.postimg.cc/d0d9Bqdd/art.png)
 
 ![GitHub Created At](https://img.shields.io/github/created-at/id-andyyy/yadro-dag-service-intern?style=flat&color=1E22AA)
-![Lines Of Code](https://tokei.rs/b1/github/id-andyyy/yadro-dag-service-intern?style=flat&category=code&color=DBF250&labelColor=black)
+![Lines Of Code](https://tokei.rs/b1/github/id-andyyy/yadro-dag-service-intern?style=flat&category=code&color=A3B43A)
 ![Top Language](https://img.shields.io/github/languages/top/id-andyyy/yadro-dag-service-intern?style=flat)
 
 # Сервис для работы с направленным ациклическим графом (DAG)
 
-Тестовое задание на стажировку [YADRO ИМПУЛЬС&nbsp;&#127775;](https://edu.yadro.com/impulse/). Микросервис для работы с ориентированными ациклическими графами (DAG) — сохранение, чтение, получение списка смежности и так далее.&nbsp;&#128451;
+Тестовое задание на стажировку [YADRO ИМПУЛЬС&nbsp;&#127775;](https://edu.yadro.com/impulse/). Микросервис для работы с ориентированными ациклическими графами (DAG) — сохранение, чтение, получение списка смежности и так далее.&nbsp;&#128451; Ссылка на [текст задания](https://drive.google.com/drive/folders/11K1IzEXFlxoVcREvxRNMlXne-R46vjF1).
 
 ## &#128268;&nbsp;API Endpoints
 
@@ -29,19 +29,21 @@
 ![Pytest](https://img.shields.io/badge/pytest-%23ffffff.svg?style=for-the-badge&logo=pytest&logoColor=2f9fe3)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
+- Python 3.11
 - REST API на FastAPI
-- PostgreSQL на продакшен-стеке и в Docker Compose
+- PostgreSQL 13 на продакшен-стеке и в Docker Compose
 - In-memory SQLite в тестах
 - SQLAlchemy для работы с базой
 - Alembic для миграций
 - Pytest, TestClient и Monkeypatch для тестирования
+- Docker и Docker compose
 
 ## &#128161;&nbsp;Принятые технические решения
 
 - Валидация и схема данных
     - Pydantic v2 + pydantic-settings (описание входных/выходных JSON-моделей)
 - ORM и работа с бд
-    - SQLAlchemy 2.0 (Declarative Base + `Mapped`/`mapped_column`)
+    - SQLAlchemy (Declarative Base + `Mapped`/`mapped_column`)
     - При удалении вершины происходит каскадное удаление соответствующих рёбер
     - `bulk_save_objects` + `flush()` + `commit()` (оптимизированная массовая вставка вершин и рёбер, минимизация количества round-trip к базе)
 - Миграции схемы
@@ -115,7 +117,7 @@
     pip install -r requirements.txt
     ```
 
-3. Запустить можно разные тесты:
+3. Обратите внимание, что присутствуют тесты, проверяющие работу сервиса при высокой нагрузке. Обычно время работы таких тестов не превышает 12 секунд. Запустить можно разные тесты.
 
     - Запуск всех тестов в проекте:
 
