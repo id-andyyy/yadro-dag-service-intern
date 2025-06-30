@@ -1,12 +1,13 @@
-![Art](https://i.postimg.cc/d0d9Bqdd/art.png)
+![Art](https://i.postimg.cc/ZKqg75d9/art.png)
 
-![GitHub Created At](https://img.shields.io/github/created-at/id-andyyy/yadro-dag-service-intern?style=flat&color=1E22AA)
-![Lines Of Code](https://tokei.rs/b1/github/id-andyyy/yadro-dag-service-intern?style=flat&category=code&color=A3B43A)
-![Top Language](https://img.shields.io/github/languages/top/id-andyyy/yadro-dag-service-intern?style=flat)
+![GitHub Created At](https://img.shields.io/github/created-at/id-andyyy/dag-service-api?style=flat&color=1E22AA)
+![](https://tokei.rs/b1/github/id-andyyy/dag-service-api?style=flat&category=code&color=A3B43A)
+![Top Language](https://img.shields.io/github/languages/top/id-andyyy/dag-service-api?style=flat)
+![Pet Project](https://img.shields.io/badge/pet-project-8400FF)
 
 # Сервис для работы с направленным ациклическим графом (DAG)
 
-Тестовое задание на стажировку [YADRO ИМПУЛЬС&nbsp;&#127775;](https://edu.yadro.com/impulse/). Микросервис для работы с ориентированными ациклическими графами (DAG) — сохранение, чтение, получение списка смежности и так далее.&nbsp;&#128451; Ссылка на [текст задания](https://drive.google.com/drive/folders/11K1IzEXFlxoVcREvxRNMlXne-R46vjF1).
+Микросервис для работы с ориентированными ациклическими графами (DAG) — сохранение, чтение, получение списка смежности и так далее&nbsp;&#128451;.
 
 ## &#128268;&nbsp;API Endpoints
 
@@ -71,8 +72,8 @@
 
 1. Склонируйте репозиторий и перейдите в папку с проектом:
     ```
-    git clone https://github.com/id-andyyy/yadro-dag-service-intern.git
-    cd yadro-dag-service-intern 
+    git clone https://github.com/id-andyyy/dag-service-api.git
+    cd dag-service-api 
     ```
 
 2. Создайте файл окружения на основе `.env.example`:
@@ -189,4 +190,6 @@ requirements.txt        # Список зависимостей
 
 ## Обратная связь
 
-Буду признателен, если вы поставите звезду&nbsp;&#11088;. Если вы нашли баг или у вас есть предложения по улучшению, используйте раздел [Issues](https://github.com/id-andyyy/yadro-dag-service-intern/issues).
+Буду признателен, если вы поставите звезду&nbsp;&#11088;. Если вы нашли баг или у вас есть предложения по улучшению, используйте раздел [Issues](https://github.com/id-andyyy/dag-service-api/issues).
+
+Read in [English&nbsp;&#127468;&#127463;](README-en.md)
